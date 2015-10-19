@@ -1,0 +1,10 @@
+---
+- name: Remove yum.repos file
+  file: path=/etc/yum.repos.d/puppetlabs-pc1.repo state=absent 
+
+
+- name: Install packages
+  yum: name="{{item}}" state=installed
+  with_items:
+  - http://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm
+  - puppet

@@ -1,0 +1,31 @@
+---
+  - name: Update all packages
+    yum: name=* state=latest update_cache=yes
+
+  - name: Remove yum.repos files
+    shell: ls -1 /etc/yum.repos.d/*
+    register: contents
+    ignore_errors: yes
+
+  - file: path=/etc/yum.repos.d/"{{ item }}" state=absent
+    with_items: contents.stdout_lines
+    when: item not in managed_files
+
+  - name: Remove puppet-agent
+    yum: name=puppet-agent state=absent
+
+  - name: Remove puppet
+    yum: name=puppet state=absent
+
+  - name: disable Firewalld
+    service: name=firewalld enabled=no
+
+  - name: Install SOE packages
+    yum: name={{item}} state=installed
+    with_items:
+      - epel-release
+      - vim
+      - rsync
+      - svn
+      - git
+      - nmap-ncat

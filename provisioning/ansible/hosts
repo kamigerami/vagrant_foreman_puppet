@@ -1,0 +1,9 @@
+[foreman]
+theforeman.example.com
+
+[agent]
+agent01.example.com
+agent02.example.com
+
+[all]
+*

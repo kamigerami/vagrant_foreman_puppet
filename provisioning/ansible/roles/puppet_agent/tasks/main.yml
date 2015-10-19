@@ -1,0 +1,14 @@
+- template: src=puppet.conf dest=/etc/puppet/puppet.conf
+  notify:
+  - Restart the puppet service
+
+- name:  Enable the puppet service
+  service: name=puppet enabled=yes
+  
+- name: Ensure service is running
+  shell: puppet resource service puppet ensure=running enable=true
+ 
+- name: Run puppet
+  shell: puppet agent --waitforcert 60 -t --server "{{ groups['foreman'][0] }}"
+  async: 60
+  poll: 0

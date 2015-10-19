@@ -1,0 +1,81 @@
+---
+
+- hosts: all
+  user: vagrant
+  sudo: yes
+  vars: 
+    managed_files: []
+
+  handlers:
+    - name: restart firewalld
+      command: firewall-cmd --reload
+
+  tasks:
+    - name: Update all packages
+      yum: "name=* state=latest update_cache=yes"
+
+#    - name: Install Puppet
+#      yum: name=http://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm state=installed update_cache=true
+   
+    - name: Remove puppet-agent
+      yum: name=puppet-agent state=absent
+
+    - name: Remove yum.repos file
+      file: path=/etc/yum.repos.d/puppetlabs-pc1.repo state=absent 
+
+
+#    - name: Remove yum.repos files
+#      shell: ls -1 /etc/yum.repos.d/pupp*
+#      register: contents
+#      ignore_errors: yes
+#
+#    - file: path=/etc/yum.repos.d/{{ item }} state=absent
+#      with_items: contents.stdout_lines
+#      when: item not in managed_files
+#
+    - name: Install packages
+      yum: name={{item}} state=installed
+      with_items:
+             - http://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm
+             - http://yum.theforeman.org/releases/1.9/el7/x86_64/foreman-release-1.9.0-1.el7.noarch.rpm
+             - epel-release
+             - foreman-installer
+             - vim
+             - rsync
+             - svn
+             - nc
+
+#    - name: Install foreman-installer
+#      yum: name=http://yum.theforeman.org/releases/1.9/el7/x86_64/foreman-release.rpm  state=installed
+    - name: Run Foreman-Installer
+      shell: "foreman-installer && foreman-installer --enable-foreman-plugin-discovery"
+      args:
+        create: /usr/share/foreman
+
+
+    - name: Set Firewall Rules
+      firewalld: service=http permanent=true state=enabled
+      firewalld: service=https permanent=true state=enabled
+      firewalld: port=67-69/tcp permanent=true state=enabled
+      firewalld: port=67-69/udp permanent=true state=enabled
+      firewalld: port=53/udp permanent=true state=enabled
+      firewalld: port=53/tcp permanent=true state=enabled
+      firewalld: port=8443/tcp permanent=true state=enabled
+      firewalld: port=8443/udp permanent=true state=enabled
+      firewalld: port=8140/udp permanent=true state=enabled
+      firewalld: port=8140/tcp permanent=true state=enabled
+      notify: 
+         - restart firewalld
+    - service: name=firewalld enabled=yes
+
+    # First run the Puppet agent on the Foreman host which will send the first Puppet report to Foreman,
+    # automatically creating the host in Foreman's database
+    - name: Run puppet
+      shell: puppet agent --waitforcert 60 -t
+
+    - name: Run Reset Foreman DB Pw
+      shell: /vagrant/provisioning/scripts/reset_foreman.pw.sh
+      register: dbpw_info
+
+    - debug: msg="{{ dbpw_info.stdout }}"
+

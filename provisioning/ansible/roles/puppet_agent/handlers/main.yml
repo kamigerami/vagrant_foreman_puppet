@@ -1,0 +1,4 @@
+# Handler to handle restart of the puppet service
+#
+- name: Restart the puppet service
+  service: name=puppet state=restarted

@@ -1,0 +1,8 @@
+---
+
+## First run the Puppet agent on the Foreman host which will send the first Puppet report to Foreman,
+## automatically creating the host in Foreman's database
+- name: Run puppet
+  shell: puppet agent --waitforcert 60 -t --server "{{ groups['foreman'][0] }}"
+  async: 60
+  poll: 0

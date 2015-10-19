@@ -1,0 +1,12 @@
+---
+- name: Install foreman-release
+  yum: name=http://yum.theforeman.org/releases/latest/el7/x86_64/foreman-release-"{{foreman_version}}"-1.el7.noarch.rpm state=installed
+
+- name: Install foreman-Installer
+  yum: name=foreman-installer-"{{foreman_version}}" state=installed
+
+- name: Run Foreman-installer
+  shell: /sbin/foreman-installer --enable-foreman-plugin-"{{ item }}"
+  with_items: "{{ foreman_plugin}}"
+  register: result
+ 

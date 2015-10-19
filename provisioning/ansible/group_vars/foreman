@@ -1,0 +1,8 @@
+---
+foreman_version: 1.9.0
+
+foreman_plugin: 
+- discovery
+- docker
+- hooks
+- templates
